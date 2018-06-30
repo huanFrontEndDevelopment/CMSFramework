@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="/common/commonHead :: commonHead('首页')"/>
+</head>
+
+<body class="no-skin" th:with="modelName = ${'主页'},funcName = ${''}">
+<th:block th:replace="/common/topBar :: topBar" />
+<div class="main-container ace-save-state" id="main-container">
+    <!--目录树-->
+    <th:block th:include="/common/sideBar :: sideBar" />
+    <div class="main-content">
+        <div class="main-content-inner">
+            <div th:replace="/common/topBar :: breadcrumbs('主页')" ></div>
+            <div class="page-content">
+                <div th:replace="/common/topBar :: aceSettingsContainer" ></div>
+                <div th:replace="/common/topBar :: pageHeader('主页',null)" ></div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <!-- PAGE CONTENT BEGINS -->
+                        <!-- PAGE CONTENT ENDS -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.page-content -->
+        </div>
+    </div><!-- /.main-content -->
+    <th:block th:include="/common/footer :: commonFooter" />
+</div><!-- /.main-container -->
+<th:block th:include="/common/commonJS :: commonOnLoadJs"/>
+</body>
+</html>

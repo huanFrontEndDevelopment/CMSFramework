@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false" >
+
+
+    <contextName>logback</contextName>
+
+    <property name="logback.logdir" value="/Users/augleo/logbackLog"/>
+    <property name="logback.appname" value="huanPay"/>
+    <!--控制台输出-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%replace(%blue(%d{HH:mm:ss.SSS}) %green([%thread]) %highlight(%-5level) %boldMagenta(%caller{1})  - %highlight(%msg%n)){"Caller\+0",""}</pattern>
+        </encoder>
+    </appender>
+
+    <!--指定最基础的日志输出级别-->
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+
+
+
+
+</configuration>

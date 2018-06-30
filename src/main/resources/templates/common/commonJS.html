@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<span th:fragment="commonOnLoadJs">
+    <!-- basic scripts -->
+    <!-- inline styles related to this page -->
+    <!-- ace settings handler -->
+    <script src="../../static/assets/js/ace-extra.min.js" th:src="@{../assets/js/ace-extra.min.js}"></script>
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src="..assets/js/html5shiv.min.js"></script>
+    <script src="..assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!--[if !IE]> -->
+    <script src="../../static/assets/js/jquery-2.1.4.min.js" th:src="@{../assets/js/jquery.js}"></script>
+    <!-- <![endif]-->
+    <!--[if IE]>
+    <script src="../../static/assets/js/jquery-1.11.3.min.js" th:src="@{../assets/js/jquery-1.11.3.min.js}"></script>
+    <![endif]-->
+    <script type="text/javascript">
+        if('ontouchstart' in document.documentElement) document.write("<script src='../assets/js/jquery.mobile.custom.min.js'>"+"<"+"/script>");
+    </script>
+    <script src="../../static/assets/js/bootstrap.min.js" th:src="@{../assets/js/bootstrap.min.js}"></script>
+    <!-- page specific plugin scripts -->
+    <!--[if lte IE 8]>
+    <script src="../../static/assets/js/excanvas.min.js" th:src="@{../assets/js/excanvas.min.js}"></script>
+    <![endif]-->
+    <script src="../../static/assets/js/jquery-ui.custom.min.js" th:src="@{../assets/js/jquery-ui.custom.min.js}"></script>
+    <script src="../../static/assets/js/jquery.ui.touch-punch.min.js" th:src="@{../assets/js/jquery.ui.touch-punch.min.js}"></script>
+    <!-- ace scripts -->
+    <script src="../../static/assets/js/ace-elements.min.js" th:src="@{../assets/js/ace-elements.min.js}"></script>
+    <script src="../../static/assets/js/ace.min.js" th:src="@{../assets/js/ace.min.js}"></script>
+    <script>
+        /**
+         * 修正全选框错位
+         * @param table_name_pre table前缀
+         */
+        function editCSS(table_name_pre){
+            $("#"+table_name_pre+"-table_cb").attr("style","width:36px");
+            $("#jqgh_"+table_name_pre+"-table_cb").css("padding-bottom","0px");
+        }
+        /**
+         * 重构弹窗form表单
+         * @param table table对象
+         * @param removeArray 将要删除的字段id array
+         * @param newArray 新字段array  item:{'id':XXX,'name':XXX, 'label':XXX, 'type':XXX}
+         */
+        function reBuildFormTable(table,removeArray,newArray){
+            if(removeArray == null){
+                table.find("tr:not(:last)").remove();
+            }else{
+                for(var i=0 ; i<removeArray.length ; i++){
+                    table.find("#"+removeArray[i]).remove();
+                }
+            }
+            if(newArray != null){
+                if(newArray.length > 0){
+                    var currentRowPos = newArray.length-1;
+                    for(var j=0 ; j<newArray.length ; j++){
+                        table.append('<tr rowpos="'+(currentRowPos+j+1)+'" class="FormData" id="tr_password"><td class="CaptionTD"><label for="new_password">'+newArray[j].label+'</label></td><td class="DataTD">&nbsp;<input type="'+newArray[j].type+'" id="'+newArray[j].id+'" name="'+newArray[j].name+'" rowid="_empty" role="textbox" class="FormElement ui-widget-content ui-corner-all"></td></tr>') ;
+                    }
+                }
+            }
+        }
+
+        /**
+         * 修改按钮alt提示文字(在jqgrid初始化 loadComplete 中调用)
+         * @param table_name_pre
+         * @param btn_name
+         * @param new_alt_text
+         */
+        function changeNavBtnAlt(table_name_pre,btn_name,new_alt_text){
+            $("#"+btn_name+"_"+table_name_pre+"-table").attr("data-original-title",new_alt_text);
+        }
+
+        /**
+         * 验证密码(beforeSubmit中调用)
+         * @param postData post后台参数
+         * @param pwd_name 一次输入密码参数名
+         * @param new_pwd_name 二次输入密码参数名
+         */
+        function checkPassword(postData,pwd_name,new_pwd_name){
+            var password = postData[pwd_name];
+            var re_password = postData[new_pwd_name];
+            if(password != re_password){
+                return [false,"两次密码输入不一致,请重新输入"];
+            }else{
+                delete postData[new_pwd_name];
+                return [true,"success"];
+            }
+        }
+        /**
+         * 返回结果处理
+         * @param response 返回结果对象
+         */
+        function alertAfterSubmit(response){
+            var json=JSON.parse(response.responseText);
+            if(json.code == 1){
+                return [true,"success"];
+            }else{
+                return [false,json.description];
+            }
+        }
+        /**
+         * 行内编辑返回处理
+         * @param response 返回结果
+         */
+        function inlineEditSuccess(response){
+            var resJson = JSON.parse(response.responseText);
+            if(resJson.code != 1){
+                alert(resJson.description);
+                return false;
+            }
+            return true;
+        }
+    </script>
+</span>
+</html>

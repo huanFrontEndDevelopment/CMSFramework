@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="sideBar">
+    <script type="text/javascript">
+        try{ace.settings.loadState('main-container')}catch(e){}
+    </script>
+    <div id="sidebar" class="sidebar responsive ace-save-state">
+        <script type="text/javascript">
+            try{ace.settings.loadState('sidebar')}catch(e){}
+        </script>
+        <ul class="nav nav-list">
+            <!--/*@thymesVar id="parentMenu" type="tv.huan.cms.entity.Menu"*/-->
+            <li class="active" th:class="${parentMenu.name == modelName} ? (${#lists.isEmpty(parentMenu.list)} ? 'active':'active open') : ''" th:each="parentMenu:${leftTree.data}">
+                <a href="#" th:href="@{${parentMenu.url} }" th:class="${#lists.isEmpty(parentMenu.list)} ? '':'dropdown-toggle'">
+                    <i class="" th:class="${'menu-icon '+parentMenu.icon}"></i>
+                    <span class="menu-text" th:text="${parentMenu.name }"></span>
+                    <th:block th:unless="${#lists.isEmpty(parentMenu.list)}">
+                    <b class="arrow fa fa-angle-down"></b>
+                    </th:block>
+                </a>
+                <b class="arrow"></b>
+                <th:block th:unless="${#lists.isEmpty(parentMenu.list)}">
+                    <ul class="submenu">
+                        <li th:each="secondMenu:${parentMenu.list}" th:class="${secondMenu.name == funcName} ? (${#lists.isEmpty(secondMenu.list)} ? 'active':'active open') : ''">
+                            <a href="#" th:href="@{${secondMenu.url }}"  th:class="${#lists.isEmpty(secondMenu.list)} ? '':'dropdown-toggle'">
+                                <span class="menu-text">
+                                    <th:block th:if="${secondMenu.icon != null}">
+                                        <i class="" th:class="${'menu-icon '+secondMenu.icon}"></i>
+                                    </th:block>
+                                    <th:block th:text="${secondMenu.name}"/>
+                                </span>
+                                <th:block th:unless="${#lists.isEmpty(secondMenu.list)}">
+                                    <b class="arrow fa fa-angle-down"></b>
+                                </th:block>
+                            </a>
+                            <b class="arrow"></b>
+                            <th:block th:unless="${#lists.isEmpty(secondMenu.list)}">
+                                <ul class="submenu">
+                                    <li th:each="thirdMenu:${secondMenu.list}" th:class="${thirdMenu.name == funcName2} ? 'active' : ''">
+                                        <a href="#" th:href="@{${thirdMenu.url }}" >
+                                            <th:block th:text="${thirdMenu.name}"/>
+                                        </a>
+                                        <b class="arrow"></b>
+                                    </li>
+                                </ul>
+                            </th:block>
+                        </li>
+                    </ul>
+                </th:block>
+            </li>
+        </ul><!-- /.nav-list -->
+        <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+            <i id="sidebar-toggle-icon" class="ace-icon fa fa-angle-double-left ace-save-state" data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
+        </div>
+    </div>
+</div>
+</html>

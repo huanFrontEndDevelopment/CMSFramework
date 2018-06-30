@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/static/assets/css/jquery-ui.min.css" th:href="@{../assets/css/jquery-ui.min.css}"/>
+    <!--<link rel="stylesheet" href="/static/assets/css/bootstrap-datepicker3.min.css" th:href="@{../assets/css/bootstrap-datepicker3.min.css}"/>-->
+    <link rel="stylesheet" href="/static/assets/css/ui.jqgrid.min.css" th:href="@{../assets/css/ui.jqgrid.min.css}"/>
+    <th:block th:include="/common/commonHead :: commonHead('二级菜单管理')"/>
+    <!-- page specific plugin styles -->
+
+</head>
+
+<body class="no-skin" th:with="modelName = ${'系统配置'},funcName = ${'菜单管理'},funcName2 = ${'二级菜单管理'}">
+<th:block th:replace="/common/topBar :: topBar" />
+<div class="main-container ace-save-state" id="main-container">
+    <!--目录树-->
+    <th:block th:include="/common/sideBar :: sideBar" />
+    <div class="main-content">
+        <div class="main-content-inner">
+            <div th:replace="/common/topBar :: breadcrumbs('系统配置')" ></div>
+            <div class="page-content">
+                <div th:replace="/common/topBar :: aceSettingsContainer" ></div>
+                <div th:replace="/common/topBar :: pageHeader('菜单管理','二级菜单管理')" ></div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <!-- PAGE CONTENT BEGINS -->
+
+                        <table id="function-table"></table>
+                        <div id="function-table-pager"></div>
+                        <!-- PAGE CONTENT ENDS -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.page-content -->
+        </div>
+    </div><!-- /.main-content -->
+    <th:block th:include="/common/footer :: commonFooter" />
+</div><!-- /.main-container -->
+<th:block th:include="/common/commonJS :: commonOnLoadJs"/>
+<!-- page specific plugin scripts -->
+<script src="/static/assets/js/jquery.jqGrid.min.js" th:src="@{../assets/js/jquery.jqGrid.min-single.js}"></script>
+<script src="/static/assets/js/grid.locale-cn.js" th:src="@{../assets/js/grid.locale-cn-single.js}"></script>
+<script src="/static/assets/js/gridInit.js" th:src="@{../assets/js/gridInit.js}"></script>
+<!-- inline scripts related to this page -->
+<script type="text/javascript">
+    var grid_selector = "#function-table";
+    var pager_selector = "#function-table-pager";
+    var parent_column = $(grid_selector).closest('[class*="col-"]');
+    var parentListData;
+    var editParentListData={};
+    function parentMenuInit(cellvalue, options, rowObject){
+        for(var i=0 ; i<parentListData.length ; i++){
+
+            if(parentListData[i].id == cellvalue){
+                return parentListData[i].name;
+            }
+        }
+
+        return cellvalue;
+    }
+    $(function() {
+        getParentSelectList();
+    });
+    function getParentSelectList(){
+        $.ajax({
+            url :"./data/menu.json?level=1&rows=0&sidx=id&sort=desc",
+            async:false,
+            success:function(data){
+                parentListData = data.rows;
+                for(var i=0 ; i<parentListData.length ; i++){
+                    editParentListData[parentListData[i].id] = parentListData[i].name;
+                }
+                console.log("parentListData="+JSON.stringify(parentListData));
+                console.log("editParentListData="+JSON.stringify(editParentListData));
+                loadGrid();
+            }
+        });
+    }
+    function loadGrid(){
+        $(grid_selector).jqGrid({
+            //表格名称
+            caption: "功能列表",
+            //从服务器端返回的数据类型
+            datatype:'json',
+            //获取数据的地址
+            url:"./data/menu.json",
+            postData:{"level":2},
+            //如果为true则会在表格左边新增一列，显示行顺序号，从1开始递增。此列名为'rn'.
+            //rownumbers: true,
+            mtype:"post",
+            //表格高度，可以是数字，像素值或者百分比
+            height: 250,
+            //列显示名称，是一个数组对象
+            colNames:['','菜单名称','上级菜单','菜单URL','位置'],
+            //默认排序
+            sortname:"id",
+            //排序方式
+            sortorder:"desc",
+            //设置表格列的属性。
+            colModel:[
+                {name:'',index:'', width:80, fixed:true, sortable:false, resize:false,search:false,
+                    formatter:'actions',
+                    formatoptions:{
+                        keys:true,
+                        delOptions:{recreateForm: true, beforeShowForm:beforeDeleteCallback}
+                    },
+                    onSuccess: inlineEditSuccess
+                },
+                {name:'name',index:'name', width:60,  editable: true},
+                {name:'parentId',index:'parentId',width:90, editable:true, edittype:'select' ,editoptions:{value:editParentListData},formatter:parentMenuInit},
+                {name:'url',index:'url', width:150,editable: true},
+                {name:'pos',index:'pos', width:60,editable: true}
+            ],
+            search:{
+                caption: "条件搜索..."
+            },
+            //定义是否要显示总记录数
+            viewrecords : true,
+            //定义是否可以多选
+            multiselect: true,
+            multiboxonly: false,
+            //在grid上显示记录条数，这个参数是要被传递到后台
+            rowNum:10,
+            //一个下拉选择框，用来改变显示记录数，当选择时会覆盖rowNum参数传递到后台
+            rowList:[10,20,30],
+            //定义翻页用的导航栏，必须是有效的html元素。翻页工具栏可以放置在html页面任意位置
+            pager : pager_selector,
+            altRows: true,
+            loadComplete : function() {
+                var table = this;
+                $("#grid-table_cb").attr("style","width:36px");
+                setTimeout(function(){
+                    updatePagerIcons(table);
+                    enableTooltips(table);
+                }, 0);
+            },
+            editurl: "./menu/edit.json?level=2"
+        });
+        //trigger window resize to make the grid get the correct size
+        $(window).triggerHandler('resize.jqGrid');
+        //navButtons
+        $(grid_selector).jqGrid('navGrid',pager_selector,
+                { 	//navbar options
+                    edit: true,
+                    editicon : 'ace-icon fa fa-pencil blue',
+                    add: true,
+                    addicon : 'ace-icon fa fa-plus-circle purple',
+                    del: true,
+                    delicon : 'ace-icon fa fa-trash-o red',
+                    search: false,
+                    searchicon : 'ace-icon fa fa-search orange',
+                    refresh: true,
+                    refreshicon : 'ace-icon fa fa-refresh green',
+                    view: true,
+                    viewicon : 'ace-icon fa fa-search-plus grey'
+                }, {
+                    //edit record form
+                    width: 700,
+                    editData:{"level":2},
+                    closeAfterEdit: true,
+                    recreateForm: true,
+                    beforeShowForm : function(e) {
+                        var form = $(e[0]);
+                        form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />');
+                        style_edit_form(form);
+                    }
+                }, {
+                    //new record form
+                    width: 700,
+                    editData:{"level":2},
+                    closeAfterAdd: true,
+                    recreateForm: true,
+                    viewPagerButtons: false,
+                    beforeShowForm : function(e) {
+                        var form = $(e[0]);
+                        form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                                .wrapInner('<div class="widget-header" />');
+                        style_edit_form(form);
+                    },
+                    afterSubmit: function(response){
+                        return alertAfterSubmit(response);
+                    }
+                }, {
+                    //delete record form
+                    recreateForm: true,
+                    beforeShowForm : function(e) {
+                        var form = $(e[0]);
+                        if(form.data('styled')) return false;
+
+                        form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />');
+                        style_delete_form(form);
+
+                        form.data('styled', true);
+                    },
+                    onClick : function(e) {
+                        //alert(1);
+                    }
+                }, {
+                    //search form
+                    recreateForm: true,
+                    afterShowSearch: function(e){
+                        var form = $(e[0]);
+                        form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />');
+                        style_search_form(form);
+                    },
+                    afterRedraw: function(){
+                        style_search_filters($(this));
+                    },
+                    //是否开启高级搜索
+                    multipleSearch: false
+
+                }, {
+                    //view record form
+                    recreateForm: true,
+                    beforeShowForm: function(e){
+                        var form = $(e[0]);
+                        form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                    }
+                }
+        );
+    }
+</script>
+</body>
+</html>

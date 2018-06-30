@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/static/assets/css/jquery-ui.min.css" th:href="@{../assets/css/jquery-ui.min.css}"/>
+    <link rel="stylesheet" href="/static/assets/css/ui.jqgrid.min.css" th:href="@{../assets/css/ui.jqgrid.min.css}"/>
+    <th:block th:include="/common/commonHead :: commonHead('角色列表')"/>
+</head>
+
+<body class="no-skin" th:with="modelName = ${'系统配置'},funcName = ${'用户管理'},funcName2 = ${'用户角色'}">
+<th:block th:replace="/common/topBar :: topBar" />
+<div class="main-container ace-save-state" id="main-container">
+    <!--目录树-->
+    <th:block th:include="/common/sideBar :: sideBar" />
+    <div class="main-content">
+        <div class="main-content-inner">
+            <div th:replace="/common/topBar :: breadcrumbs('系统配置')" ></div>
+            <div class="page-content">
+                <div th:replace="/common/topBar :: aceSettingsContainer" ></div>
+                <div th:replace="/common/topBar :: pageHeader('用户管理','用户角色')" ></div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <!-- PAGE CONTENT BEGINS -->
+                        <table id="user-role-table"></table>
+                        <div id="user-role-table-pager"></div>
+                        <!-- PAGE CONTENT ENDS -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.page-content -->
+        </div>
+    </div><!-- /.main-content -->
+    <th:block th:include="/common/footer :: commonFooter" />
+</div><!-- /.main-container -->
+<th:block th:include="/common/commonJS :: commonOnLoadJs"/>
+<!-- page specific plugin scripts -->
+<script src="/static/assets/js/jquery.jqGrid.min.js" th:src="@{../assets/js/jquery.jqGrid.js}"></script>
+<script src="/static/assets/js/grid.locale-cn.js" th:src="@{../assets/js/grid.locale-cn-single.js}"></script>
+<script src="/static/assets/js/gridInit.js" th:src="@{../assets/js/gridInit.js}"></script>
+<!-- inline scripts related to this page -->
+<script th:inline="javascript">
+    var userSelectValue = [[${userSelectVal}]];
+    var roleSelectValue = [[${roleSelectVal}]];
+</script>
+<script type="text/javascript">
+    var grid_selector = "#user-role-table";
+    var pager_selector = "#user-role-table-pager";
+    var parent_column = $(grid_selector).closest('[class*="col-"]');
+    var tableJSON;
+    $(function() {
+        loadGrid();
+    });
+
+    function loadGrid(){
+        $(grid_selector).jqGrid({
+            //表格名称
+            caption: "用户角色列表",
+            //从服务器端返回的数据类型
+            datatype:'json',
+            //获取数据的地址
+            url:"./userRoleList.json",
+            //如果为true则会在表格左边新增一列，显示行顺序号，从1开始递增。此列名为'rn'.
+            //rownumbers: true,
+            mtype:"post",
+            //表格高度，可以是数字，像素值或者百分比
+            height: 250,
+            //列显示名称，是一个数组对象
+            colNames:['','用户名','用户角色'],
+            //默认排序
+            sortname:"id",
+            //排序方式
+            sortorder:"desc",
+            //设置表格列的属性。
+            colModel:[
+                {name:'',index:'', width:80, fixed:true, sortable:false, resize:false,search:false,editable: false,
+                    formatter:'actions',
+                    formatoptions:{
+                        keys:true,
+                        delOptions:{recreateForm: true, beforeShowForm:beforeDeleteCallback},
+                        onSuccess: function(response){
+                            var resJson = JSON.parse(response.responseText);
+                            if(resJson.code != 1){
+                                alert(resJson.description);
+                                return false;
+                            }
+                            return true;
+                        }
+                    }
+                },
+                {name:'userId',index:'user_id', width:60, editable: true, edittype: "select", editoptions: { value: userSelectValue}, jsonmap:'user.userName'},
+                {name:'roleId',index:'role_id', jsonmap:'role.name', width:60,  editable: true, edittype: "select", editoptions: { value: roleSelectValue}, editrules: { required: true}}
+            ],
+            //定义是否要显示总记录数
+            viewrecords : true,
+            //定义是否可以多选
+            multiselect: true,
+            multiboxonly: false,
+            //在grid上显示记录条数，这个参数是要被传递到后台
+            rowNum:10,
+            //一个下拉选择框，用来改变显示记录数，当选择时会覆盖rowNum参数传递到后台
+            rowList:[10,20,30],
+            //定义翻页用的导航栏，必须是有效的html元素。翻页工具栏可以放置在html页面任意位置
+            pager : pager_selector,
+            altRows: true,
+            loadComplete : function(data) {
+                tableJSON = data.rows;
+                var table = this;
+                //修正全选框位置及表格边框错位
+                editCSS("user-role");
+                setTimeout(function(){
+                    updatePagerIcons(table);
+                    enableTooltips(table);
+                }, 0);
+            },
+            editurl: "./userRole/edit.json"
+        });
+        //trigger window resize to make the grid get the correct size
+        $(window).triggerHandler('resize.jqGrid');
+
+        //navButtons
+        $(grid_selector).jqGrid('navGrid',pager_selector,
+                { 	//navbar options
+                    edit: false,
+                    editicon : 'ace-icon fa fa-pencil blue',
+                    add: true,
+                    addicon : 'ace-icon fa fa-plus-circle purple',
+                    del: true,
+                    delicon : 'ace-icon fa fa-trash-o red',
+                    search: false,
+                    searchicon : 'ace-icon fa fa-search orange',
+                    refresh: true,
+                    refreshicon : 'ace-icon fa fa-refresh green',
+                    view: false,
+                    viewicon : 'ace-icon fa fa-search-plus grey'
+                }, {
+                    //edit record form
+                },
+                {   //new record form
+                    width: 700,
+                    closeAfterAdd: true,
+                    recreateForm: true,
+                    viewPagerButtons: false,
+                    beforeShowForm : function(e) {
+                        var form = $(e[0]);
+                        form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                                .wrapInner('<div class="widget-header" />');
+                        form.find("#TblGrid_user-role-table").find("tr:first")
+                        style_edit_form(form);
+                    },
+                    afterSubmit: function(response){
+                        return alertAfterSubmit(response);
+                    }
+                },
+                {
+                    //delete record form
+                    recreateForm: true,
+                    beforeShowForm : function(e) {
+                        var form = $(e[0]);
+                        if(form.data('styled')) return false;
+                        form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />');
+                        style_delete_form(form);
+                        form.data('styled', true);
+                    },
+                    afterSubmit: function(response){
+                        var json=JSON.parse(response.responseText);
+                        if(json.code == 1){
+                            alert("成功删除"+json.delete_count+"条记录");
+                        }
+                        return [true,"success"];
+                    }
+
+                },
+                {
+                    //search form
+                },
+                {
+                    //view record form
+
+                }
+        );
+
+    }
+
+</script>
+</body>
+</html>
