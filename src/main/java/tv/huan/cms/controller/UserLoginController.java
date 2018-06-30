@@ -39,22 +39,7 @@ public class  UserLoginController {
     @Autowired
     private AccountService accountService;
 
-    /**
-     * 退出登录
-     */
-    @RequestMapping("/userLogout.do")
-    public String logout(){
-        Subject subject = SecurityUtils.getSubject();
-        if(subject != null){
-            User user = (User) subject.getSession().getAttribute("user");
-            if(user != null){
-                log.debug("user "+user.getUserName()+" logout");
-            }
-            subject.logout();
-        }
-
-        return "redirect:/login.html";
-    }
+    
     @RequestMapping("/goIndex.do")
     public String goIndex(){
         String goIndexFlag = "goIndex";
