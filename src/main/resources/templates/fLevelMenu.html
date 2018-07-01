@@ -72,7 +72,9 @@
                     formatter:'actions',
                     formatoptions:{
                         keys:true,
-                        delOptions:{recreateForm: true, beforeShowForm:beforeDeleteCallback},
+                        //alertAfterSubmit:行内删除结果验证
+                        delOptions:{recreateForm: true, beforeShowForm:beforeDeleteCallback,afterSubmit:alertAfterSubmit},
+                        //行内编辑返回结果验证
                         onSuccess: inlineEditSuccess
                     }
                 },
@@ -93,7 +95,9 @@
             //定义翻页用的导航栏，必须是有效的html元素。翻页工具栏可以放置在html页面任意位置
             pager : pager_selector,
             altRows: true,
-            loadComplete : function() {
+            loadComplete : function(response) {
+                //未刷新页面获取表格数据时,判断是否登录过期
+                checkAuthc(response);
                 var table = this;
                 $("#grid-table_cb").attr("style","width:36px");
                 setTimeout(function(){
@@ -101,7 +105,7 @@
                     enableTooltips(table);
                 }, 0);
             },
-            editurl: "./menu/edit.json"
+            editurl: "./menu/edit.json?level=1"
         });
         //trigger window resize to make the grid get the correct size
         $(window).triggerHandler('resize.jqGrid');

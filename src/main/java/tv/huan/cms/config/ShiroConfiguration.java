@@ -19,11 +19,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tv.huan.cms.filter.ShiroAccessFilter;
 import tv.huan.cms.schedule.QuartzSessionValidationScheduler2;
 import tv.huan.cms.shiro.RetryLimitHashedCredentialsMatcher;
 import tv.huan.cms.shiro.UserRealm;
-
+import javax.servlet.Filter;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Project Name:BasicCMS
@@ -229,8 +231,9 @@ public class ShiroConfiguration {
     public ShiroFilterFactoryBean shiroFilter(@Qualifier("securityManager") DefaultWebSecurityManager securityManager) {
         MyShiroFilterFactoryBean bean=new MyShiroFilterFactoryBean();
         bean.setSecurityManager( securityManager);
-        //未登录跳转到登录页
-        bean.setLoginUrl("/error/530.html");
+        Map<String,Filter> filters = new LinkedHashMap<>();
+        filters.put("authc",new ShiroAccessFilter());
+        bean.setFilters(filters);
         //无权限跳转
         bean.setUnauthorizedUrl("/error/403.html");
         //配置访问权限
