@@ -24,6 +24,7 @@ public class MyShiroFilterFactoryBean extends ShiroFilterFactoryBean {
     public void setFilterChainDefinitionMap(Map<String, String> filterChainDefinitionMap) {
         Map<String,String> filterMap = new LinkedHashMap<>();
         filterMap.put("/assets/**", "anon");
+        filterMap.put("/favicon.ico", "anon");
         filterMap.put("/login.html", "anon");
         filterMap.put("/logout", "logout");
         filterMap.put("/", "anon");
