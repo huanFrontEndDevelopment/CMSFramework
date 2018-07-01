@@ -1,4 +1,20 @@
+/**
+ * 获取url参数(get方式)
+ * @param name 参数名
+ * @returns  参数值
+ * @constructor
+ */
+function GetQueryString(name)
+{
+    var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if(r!=null)return  unescape(r[2]); return null;
+}
 $(document).ready(function(){
+    var flag = GetQueryString("redirectFlag");
+    if(flag == 1){
+        alert("用户未登录或登录超时,请重新登录")
+    }
     $("#submit_btn").click(function(){
         checkInput();
     });
