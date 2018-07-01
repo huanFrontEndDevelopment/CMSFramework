@@ -1,2 +1,2 @@
-# EDU CMS by CMSFramework
-教育cms系统
+# basic CMSFramework
+cms系统框架
